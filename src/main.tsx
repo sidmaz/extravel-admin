@@ -6,6 +6,9 @@ import { createBrowserRouter, RouterProvider , Navigate} from "react-router";
 import NotificationsProvider from './dashboard/hooks/useNotifications/NotificationsProvider';
 import DialogsProvider from './dashboard/hooks/useDialogs/DialogsProvider';
 import AppTheme from './shared-theme/AppTheme';
+import { AuthProvider } from './context/AuthContext'; 
+import { useAuth } from './context/AuthContext'; 
+
 
 import './index.css'
 //import App from './App.tsx'
@@ -25,6 +28,21 @@ import {
 } from './dashboard/theme/customizations';
 
 
+const RoleGuard = ({ children, allowedRoles }: { children: JSX.Element, allowedRoles: UserRole[] }) => {
+  const { user } = useAuth();
+
+  // If user is null, the Guard will immediately redirect to login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!allowedRoles.includes(user.role)) {
+    return <Navigate to="/employees" replace />;
+  }
+
+  return children;
+};
+
 const router = createBrowserRouter([
   // Public Route (No Sidebar/Header)
   {
@@ -36,7 +54,11 @@ const router = createBrowserRouter([
     path: "/employees",
     element: <DashboardLayout />, // This stays visible /employees/:employeeId
     children: [
-      { index: true, element: <EmployeeList /> }, // Shows at /employees
+      { index: true, element: (
+          <RoleGuard allowedRoles={['ADMIN']}>
+            <EmployeeList />
+          </RoleGuard>
+        ) }, // Shows at /employees
       { path: "new", element: <EmployeeCreate /> }, 
       { path: ":employeeId", element: <EmployeeShow /> },
       { path: ":employeeId/edit", element: <EmployeeEdit /> }
@@ -57,11 +79,13 @@ const themeComponents = {
 createRoot(document.getElementById('root')!).render(
     <AppTheme themeComponents={themeComponents}>
       <CssBaseline enableColorScheme />
+      <AuthProvider> {/* Auth must be ABOVE RouterProvider */}
       <NotificationsProvider> 
       <DialogsProvider>
         <RouterProvider router={router} />
       </DialogsProvider>
-    </NotificationsProvider>
+      </NotificationsProvider>
+      </AuthProvider>
     </AppTheme>  
   
 )

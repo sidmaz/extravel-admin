@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from "react-router";
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -75,6 +77,9 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
     setOpen(false);
   };
 
+  const { login } = useAuth(); // <--- Destructure the function here
+  const navigate = useNavigate();
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     if (emailError || passwordError) {
       event.preventDefault();
@@ -85,6 +90,14 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
       email: data.get('email'),
       password: data.get('password'),
     });
+
+    // HARD-CODED ROLE LOGIC
+    if (data.get('email') === 'admin@test.com' && data.get('password') === 'sAve4me986') {
+      login(data.get('email'), 'ADMIN');
+      navigate('/employees',{replace: true});
+    } else {
+      alert("Invalid Credentials");
+    }
   };
 
   const validateInputs = () => {
