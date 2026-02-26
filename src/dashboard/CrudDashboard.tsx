@@ -1,10 +1,8 @@
 import CssBaseline from '@mui/material/CssBaseline';
-import { createHashRouter, RouterProvider } from 'react-router';
+//import { createHashRouter, RouterProvider } from 'react-router';
 import DashboardLayout from './components/DashboardLayout';
 import EmployeeList from './components/EmployeeList';
-import EmployeeShow from './components/EmployeeShow';
-import EmployeeCreate from './components/EmployeeCreate';
-import EmployeeEdit from './components/EmployeeEdit';
+
 import NotificationsProvider from './hooks/useNotifications/NotificationsProvider';
 import DialogsProvider from './hooks/useDialogs/DialogsProvider';
 import AppTheme from '../shared-theme/AppTheme';
@@ -15,6 +13,7 @@ import {
   formInputCustomizations,
 } from './theme/customizations';
 
+/*
 const router = createHashRouter([
   {
     Component: DashboardLayout,
@@ -46,7 +45,7 @@ const router = createHashRouter([
       },
     ],
   },
-]);
+]);*/
 
 const themeComponents = {
   ...dataGridCustomizations,
@@ -61,8 +60,10 @@ export default function CrudDashboard(props: { disableCustomTheme?: boolean }) {
       <CssBaseline enableColorScheme />
       <NotificationsProvider>
         <DialogsProvider>
-          <RouterProvider router={router} />
+          <EmployeeList />
         </DialogsProvider>
+          
+        
       </NotificationsProvider>
     </AppTheme>
   );
