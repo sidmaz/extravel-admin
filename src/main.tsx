@@ -55,7 +55,7 @@ const router = createBrowserRouter([
     element: <DashboardLayout />, // This stays visible /employees/:employeeId
     children: [
       { index: true, element: (
-          <RoleGuard allowedRoles={['ADMIN']}>
+          <RoleGuard allowedRoles={['SA']}>
             <EmployeeList />
           </RoleGuard>
         ) }, // Shows at /employees

@@ -19,6 +19,7 @@ import ForgotPassword from './components/ForgotPassword';
 import AppTheme from '../shared-theme/AppTheme';
 import ColorModeSelect from '../shared-theme/ColorModeSelect';
 import { GoogleIcon, FacebookIcon, SitemarkIcon } from './components/CustomIcons';
+import APICall  from '../api/APICall';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -80,25 +81,54 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
   const { login } = useAuth(); // <--- Destructure the function here
   const navigate = useNavigate();
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
     if (emailError || passwordError) {
-      event.preventDefault();
       return;
     }
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get('email');
+    const password = formData.get('password');
+
+    try {
+    const response = await APICall.post('/auth/login', { 
+        'username' : email, 
+        'password' : password
     });
 
-    // HARD-CODED ROLE LOGIC
-    if (data.get('email') === 'admin@test.com' && data.get('password') === 'sAve4me986') {
-      login(data.get('email'), 'ADMIN');
-      navigate('/employees',{replace: true});
+    // 1. Axios puts the actual API response inside .data
+    const apiData = response.data; 
+
+    // 2. Check the Network Tab: Does it return { token, user: {...} } 
+    // or just { token, email, role }?
+    if (apiData && apiData.token) {
+        
+        // 3. Save the token manually if your interceptor doesn't do it yet
+        localStorage.setItem('admin_token', apiData.token);
+
+        // 4. Update your local state (use apiData.user if nested, or apiData directly)
+        const userEmail = apiData.user?.email || apiData.email;
+        const userRole = apiData.user?.role || apiData.role || 'SA';
+
+        login(userEmail, userRole);
+        navigate('/employees', { replace: true });
+        
     } else {
-      alert("Invalid Credentials");
+        // This is why you were getting "Invalid Response"
+        console.error("API structure mismatch:", apiData);
+        alert("Invalid Response from Server: Check Console");
     }
+
+    } catch (error: any) {
+        // Fix: Show the actual error from Slim
+        const message = error.response?.data?.detail || "Invalid Credentials";
+        alert(message);
+    }
+
   };
+
 
   const validateInputs = () => {
     const email = document.getElementById('email') as HTMLInputElement;
